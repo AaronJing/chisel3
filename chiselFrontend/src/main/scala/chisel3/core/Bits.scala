@@ -367,6 +367,13 @@ sealed abstract class Bits(width: Width) extends Element(width) with ToBoolable 
   def toBools(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Seq[Bool] =
     Seq.tabulate(this.getWidth)(i => this(i))
 
+  /** Returns the contents of this wire as a [[scala.collection.Seq]] of [[Bool]]. */
+  final def asBools(): Seq[Bool] = macro SourceInfoTransform.noArg
+
+  /** @group SourceInfoTransformMacro */
+  def asBools(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Seq[Bool] =
+    Seq.tabulate(this.getWidth)(i => this(i))
+
   /** Reinterpret this $coll as a [[SInt]]
     *
     * @note The value is not guaranteed to be preserved. For example, a [[UInt]] of width 3 and value 7 (0b111) would
