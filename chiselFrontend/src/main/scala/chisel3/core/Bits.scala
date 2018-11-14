@@ -55,10 +55,20 @@ private[chisel3] sealed trait ToBoolable extends Element {
     *
     * @note The width must be known and equal to 1
     */
+  @deprecated("Use asBool", "3.2")
   final def toBool(): Bool = macro SourceInfoWhiteboxTransform.noArg
 
   /** @group SourceInfoTransformMacro */
   def do_toBool(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Bool
+
+  /** Casts this $coll to a [[Bool]]
+    *
+    * @note The width must be known and equal to 1
+    */
+  final def asBool(): Bool = macro SourceInfoWhiteboxTransform.noArg
+
+  /** @group SourceInfoTransformMacro */
+  def do_asBool(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Bool
 }
 
 /** A data type for values represented by a single bitvector. This provides basic bitwise operations.
@@ -361,9 +371,12 @@ sealed abstract class Bits(width: Width) extends Element(width) with ToBoolable 
   def do_>> (that: UInt)(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Bits
 
   /** Returns the contents of this wire as a [[scala.collection.Seq]] of [[Bool]]. */
+  @deprecated("Use asBools", "3.2")
   final def toBools(): Seq[Bool] = macro SourceInfoTransform.noArg
 
   /** @group SourceInfoTransformMacro */
+  @chiselRuntimeDeprecated
+  @deprecated("Use asBools", "3.2")
   def toBools(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Seq[Bool] =
     Seq.tabulate(this.getWidth)(i => this(i))
 
@@ -420,6 +433,13 @@ sealed abstract class Bits(width: Width) extends Element(width) with ToBoolable 
   }
 
   final def do_toBool(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Bool = {
+    width match {
+      case KnownWidth(1) => this(0)
+      case _ => throwException(s"can't covert UInt<$width> to Bool")
+    }
+  }
+
+  final def do_asBool(implicit sourceInfo: SourceInfo, compileOptions: CompileOptions): Bool = {
     width match {
       case KnownWidth(1) => this(0)
       case _ => throwException(s"can't covert UInt<$width> to Bool")
